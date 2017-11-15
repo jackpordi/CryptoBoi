@@ -2,10 +2,11 @@
 from bittrex import Bittrex, API_V2_0
 from enum import Enum
 import json
+import requests
 
 class Currencies(Enum):
-    ETH="ETH"
     BTC="BTC"
+    ETH="ETH"
     #BCC="BCC"
     OMG="OMG"
     ARK="ARK"
@@ -18,14 +19,23 @@ class Bot(object):
 
     def runbot(self):
         while True:
+            self.update_btc_price()
             for coin in Currencies:
                 self.print_currency(coin)
+        return
+
+    def update_btc_price(self):
+        data = requests.get("https://api.coinmarketcap.com/v1/ticker/bitcoin/").json()
+        #print(data[0]['price_usd'])
+        self.btc_price = data[0]['price_usd']
         return
 
     def print_currency(self, coin):
         coin_balance = self.btrx.get_balance(coin.value)
         market = 'BTC-' + coin.value + ' price ='
-        output = line_new = '{:>6} {:>4} {:>10}{:>12} {:>12} {:>16}'.format("Current", coin.value, "Balance = ",float(coin_balance['result']['Balance']), market, self.get_market_price(coin))
+        marketprice = self.get_market_price(coin)
+        usd_price = float(marketprice) * float(self.btc_price)
+        output = line_new = '{:>6}{:>4} {:>10}{:>12} {:>8} {:>10} {:>8} {:>12}'.format("Current", coin.value, "Balance = ",float(coin_balance['result']['Balance']), market, marketprice, "Price in USD =", usd_price)
         print(output)
         #print("Current", coin.value, "Balance = ",float(coin_balance['result']['Balance']), "perBTC price = ", self.get_market_price(coin))
     
