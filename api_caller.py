@@ -2,6 +2,8 @@
 
 import json
 import requests
+import time
+from currency_data import Pair_Group, Pair_Groups
 
 class API(object):
     
@@ -35,14 +37,16 @@ class API(object):
             price_in_btc = currency['Last']
             price_in_usd = price_in_btc * self.btc_price
             to_print = '{:<9} {:<6} {:<13} {:<6} {:<10}'.format(currency['MarketName'],"price:",str(price_in_btc), "USD price =", price_in_usd)
+            time.sleep(0.05)
             print(to_print)
             
     
 def main():
     api = API("cfa2fe7b52fc446a8c02baed2df9ae32", "80e19ec06bb54a639ff403b2a63d36f4",)
-    api.display_all_markets()
+    while True:
+        api.display_all_markets()
+        time.sleep(10)
+        api.update_all_markets()
 
 if __name__ == '__main__':
     main()
-
-        
