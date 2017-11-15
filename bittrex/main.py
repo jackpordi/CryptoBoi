@@ -7,7 +7,7 @@ import requests
 class Currencies(Enum):
     BTC="BTC"
     ETH="ETH"
-    #BCC="BCC"
+    BCC="BCC"
     OMG="OMG"
     ARK="ARK"
     LTC="LTC"
@@ -35,7 +35,7 @@ class Bot(object):
         market = 'BTC-' + coin.value + ' price ='
         marketprice = self.get_market_price(coin)
         usd_price = float(marketprice) * float(self.btc_price)
-        output = line_new = '{:>6}{:>4} {:>10}{:>12} {:>8} {:>10} {:>8} {:>12}'.format("Current", coin.value, "Balance = ",float(coin_balance['result']['Balance']), market, marketprice, "Price in USD =", usd_price)
+        output = '{:>6}{:>4} {:>10}{:>12} {:>8} {:>10} {:>8} {:>12}'.format("Current", coin.value, "Balance = ",float(coin_balance['result']['Balance']), market, marketprice, "Price in USD =", usd_price)
         print(output)
         #print("Current", coin.value, "Balance = ",float(coin_balance['result']['Balance']), "perBTC price = ", self.get_market_price(coin))
     
@@ -47,7 +47,7 @@ class Bot(object):
                 marketData = self.btrx.get_marketsummary('BTC-' + coin.value)
                 if marketData['result']['MarketName'] == 'BTC-' + coin.value:
                     return marketData['result']['Last']
-                #print('failed, exchange returned ', marketData['result']['MarketName'])
+                print('failed, exchange returned ', marketData['result']['MarketName'])
 
 
 if __name__ == '__main__' :
