@@ -48,10 +48,9 @@ def main():
     #     time.sleep(10)
     #     api.update_and_get_all_markets()
     all_data = api.update_and_get_all_markets()
-    print(all_data)
     test_groups = Pair_Groups(all_data)
-    test_groups.update_all(all_data)
-    test_groups.show_all()
+    #test_groups.show_all()
+    #test_groups.update_all(all_data)
     #test_groups.initialize_all_logs()
     #test_groups.log_all()
 

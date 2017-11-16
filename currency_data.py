@@ -29,8 +29,10 @@ class Pair_Groups(object):
         self.eth_pairs = Pair_Group(BaseCurrency.ETH)
         self.usdt_pairs = Pair_Group(BaseCurrency.USDT)
         self.allpairs = [self.btc_pairs, self.eth_pairs, self.usdt_pairs]
+        #print(rawjson)
         for pair in rawjson:
             market_name = pair['MarketName']
+            print(market_name)
             base_quote= market_name.split("-")
             base = base_quote[0]
             quote= base_quote[1]
