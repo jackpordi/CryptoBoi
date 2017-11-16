@@ -3,7 +3,8 @@
 import json
 import requests
 import time
-from currency_data import Pair_Group, Pair_Groups
+from baseCurr import BaseCurrency
+from currency_data import Pair_Group, Pair_Groups, Asset, Trading_Pair
 
 class API(object):
     
@@ -12,7 +13,7 @@ class API(object):
         self.private_key = private_key
         self.api_version = "v1.1"
         self.api_url = "https://bittrex.com/api/"
-        self.all_markets = self.update_all_markets()
+        self.all_markets = self.update_and_get_all_markets()
         self.btc_price = self.update_btc_price()
 
     def public_query(self, query_type, *args):
@@ -28,25 +29,31 @@ class API(object):
         self.btc_price = float(data[0]['price_usd'])
         return self.btc_price
     
-    def update_all_markets(self):
-        self.all_markets = self.public_query("getmarketsummaries")
+    def update_and_get_all_markets(self):
+        self.all_markets = self.public_query("getmarketsummaries")['result']
         return self.all_markets
 
     def display_all_markets(self):
-        for currency in self.update_all_markets()['result']:
+        for currency in self.update_and_get_all_markets():
             price_in_btc = currency['Last']
             price_in_usd = price_in_btc * self.btc_price
             to_print = '{:<9} {:<6} {:<13} {:<6} {:<10}'.format(currency['MarketName'],"price:",str(price_in_btc), "USD price =", price_in_usd)
             time.sleep(0.05)
             print(to_print)
             
-    
 def main():
     api = API("cfa2fe7b52fc446a8c02baed2df9ae32", "80e19ec06bb54a639ff403b2a63d36f4",)
-    while True:
-        api.display_all_markets()
-        time.sleep(10)
-        api.update_all_markets()
+    # while True:
+    #     api.display_all_markets()
+    #     time.sleep(10)
+    #     api.update_and_get_all_markets()
+    eth_asset = Asset("ETH")
+    btc_asset = Asset("BTC")
+    btc_eth_pair = Trading_Pair(btc_asset, eth_asset)
+    btc_group = Pair_Group(BaseCurrency.BTC)
+    btc_group.add_pairs(btc_eth_pair)
+    btc_eth_pair.update(api.update_and_get_all_markets())
+    btc_eth_pair.log()
 
 if __name__ == '__main__':
     main()
