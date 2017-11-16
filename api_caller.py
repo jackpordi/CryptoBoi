@@ -32,7 +32,7 @@ class API(object):
     def update_and_get_all_markets(self):
         self.all_markets = self.public_query("getmarketsummaries")['result']
         return self.all_markets
-
+#
     def display_all_markets(self):
         for currency in self.update_and_get_all_markets():
             price_in_btc = currency['Last']
@@ -50,9 +50,11 @@ def main():
     all_data = api.update_and_get_all_markets()
     test_groups = Pair_Groups(all_data)
     #test_groups.show_all()
-    #test_groups.update_all(all_data)
-    #test_groups.initialize_all_logs()
-    #test_groups.log_all()
+    while True:
+        test_groups.initialize_all_logs()
+        test_groups.update_all(api.update_and_get_all_markets())
+        test_groups.log_all()
+        time.sleep(60)
 
 def log_asset():
     api = API("cfa2fe7b52fc446a8c02baed2df9ae32", "80e19ec06bb54a639ff403b2a63d36f4",)

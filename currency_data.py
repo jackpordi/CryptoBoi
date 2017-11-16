@@ -32,7 +32,7 @@ class Pair_Groups(object):
         #print(rawjson)
         for pair in rawjson:
             market_name = pair['MarketName']
-            print(market_name)
+            #print(market_name)
             base_quote= market_name.split("-")
             base = base_quote[0]
             quote= base_quote[1]
@@ -82,7 +82,6 @@ class Pair_Group(object):
         self.update_base_curr_price()
 
     def add_pairs(self, *args):
-        self.pairs = []
         for arg in args:
             new_trading_pair = Trading_Pair(arg[1], arg[2])
             self.pairs.append(new_trading_pair)
@@ -94,7 +93,9 @@ class Pair_Group(object):
 
     def get_base_usd_price(self):
         return self.base_curr_price
+
     def update_group(self, data):
+        self.update_base_curr_price()
         for pair in self.pairs:
             pair.update(data)
 
@@ -108,7 +109,7 @@ class Pair_Group(object):
 
     def initialize_logs(self):
         for pair in self.pairs:
-            pair.initialize_logs()
+            pair.initialize_log()
 
 class Trading_Pair(object):
     
