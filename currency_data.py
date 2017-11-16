@@ -1,5 +1,6 @@
 import json
 import csv
+import os
 import requests
 from datetime import datetime
 from baseCurr import BaseCurrency
@@ -72,6 +73,14 @@ class Trading_Pair(object):
     def add_to_group(self, group):
         self.parent_group = group
 
+    def initialize_log(self):
+        log_file_name = "AssetLogs/" + self.market_name + ".csv"
+        if not os.path.isfile(log_file_name):
+            log_file = open(log_file_name, "a+")
+            writer = csv.writer(log_file)
+            writer.writerow(["Time", "BasePrice", "USDPrice", "24Hr USD Volume"])
+            log_file.close()
+
     def log(self):    
         log_file = open("AssetLogs/" + self.market_name + ".csv", "a+")
         writer = csv.writer(log_file)
@@ -81,18 +90,19 @@ class Trading_Pair(object):
         usd_volume = self.parent_group.get_base_usd_price() * self.data['BaseVolume']
         print(current_time, price, usd_price, usd_volume)
         # Timestamp, Price, to USD Price, 24Hr Volume
-        #writer.writerow([5,6,7,8,9])
+        writer.writerow([current_time, price, usd_price, usd_volume])
+        log_file.close()
 
 def main():
     allpairs = Pair_Groups()
     allpairs.show_all_base_currs()
 
-if __name__ == "__main__":
-    eth_asset = Asset("ETH")
-    btc_asset = Asset("BTC")
-    btc_eth_pair = Trading_Pair(btc_asset, eth_asset)
-    btc_group = Pair_Group(BaseCurrency.BTC)
-    btc_group.add_pairs(btc_eth_pair)
-    btc_eth_pair.log()
-    print(btc_eth_pair.market_name)
-    print(datetime.now())
+# if __name__ == "__main__":
+#     eth_asset = Asset("ETH")
+#     btc_asset = Asset("BTC")
+#     btc_eth_pair = Trading_Pair(btc_asset, eth_asset)
+#     btc_group = Pair_Group(BaseCurrency.BTC)
+#     btc_group.add_pairs(btc_eth_pair)
+#     btc_eth_pair.log()
+#     print(btc_eth_pair.market_name)
+#     print(datetime.now())

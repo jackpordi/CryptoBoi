@@ -52,8 +52,12 @@ def main():
     btc_eth_pair = Trading_Pair(btc_asset, eth_asset)
     btc_group = Pair_Group(BaseCurrency.BTC)
     btc_group.add_pairs(btc_eth_pair)
-    btc_eth_pair.update(api.update_and_get_all_markets())
-    btc_eth_pair.log()
+    btc_eth_pair.initialize_log()
+    while True:
+        btc_eth_pair.update(api.update_and_get_all_markets())
+        btc_eth_pair.log()
+        time.sleep(10)
+        btc_group.update_base_curr_price()
 
 if __name__ == '__main__':
     main()
