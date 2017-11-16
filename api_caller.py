@@ -47,6 +47,16 @@ def main():
     #     api.display_all_markets()
     #     time.sleep(10)
     #     api.update_and_get_all_markets()
+    all_data = api.update_and_get_all_markets()
+    print(all_data)
+    test_groups = Pair_Groups(all_data)
+    test_groups.update_all(all_data)
+    test_groups.show_all()
+    #test_groups.initialize_all_logs()
+    #test_groups.log_all()
+
+def log_asset():
+    api = API("cfa2fe7b52fc446a8c02baed2df9ae32", "80e19ec06bb54a639ff403b2a63d36f4",)
     eth_asset = Asset("ETH")
     btc_asset = Asset("BTC")
     btc_eth_pair = Trading_Pair(btc_asset, eth_asset)
@@ -56,7 +66,7 @@ def main():
     while True:
         btc_eth_pair.update(api.update_and_get_all_markets())
         btc_eth_pair.log()
-        time.sleep(10)
+        time.sleep(60)
         btc_group.update_base_curr_price()
 
 if __name__ == '__main__':

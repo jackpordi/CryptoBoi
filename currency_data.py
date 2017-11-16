@@ -24,16 +24,53 @@ class Asset(object):
 
 class Pair_Groups(object):
 
-    def __init__(self, *args):
+    def __init__(self, rawjson):
         self.btc_pairs = Pair_Group(BaseCurrency.BTC)
         self.eth_pairs = Pair_Group(BaseCurrency.ETH)
         self.usdt_pairs = Pair_Group(BaseCurrency.USDT)
         self.allpairs = [self.btc_pairs, self.eth_pairs, self.usdt_pairs]
+        for pair in rawjson:
+            market_name = pair['MarketName']
+            base_quote= market_name.split("-")
+            base = base_quote[0]
+            quote= base_quote[1]
+            if base == 'BTC':
+                #print(market_name + " is a BTC Pair")
+                self.btc_pairs.add_pairs([pair, base, quote])
+            elif base == 'ETH':
+                #print(market_name + " is an ETH Pair")
+                self.eth_pairs.add_pairs([pair, base, quote])
+            elif base == 'USDT':
+                #print(market_name + " is a USDT Pair")
+                self.usdt_pairs.add_pairs([pair, base, quote])
+            else:
+                print("Error! Not a BTC, ETH, or USDT Pair:" + pair['MarketName'])
 
     def show_all_base_currs(self):
         for pair in self.allpairs:
            pair.update_base_curr_price()
            print(pair.base_curr.value + "-$ = " + pair.base_curr_price)
+
+    def update_all(self, data):
+        self.btc_pairs.update_group(data)
+        self.eth_pairs.update_group(data)
+        self.usdt_pairs.update_group(data)
+
+    def log_all(self):
+        self.btc_pairs.log_group()
+        self.eth_pairs.log_group()
+        self.usdt_pairs.log_group()
+
+    def initialize_all_logs(self):
+        self.btc_pairs.initialize_logs()
+        self.eth_pairs.initialize_logs()
+        self.usdt_pairs.initialize_logs()
+
+    def show_all(self):
+            self.btc_pairs.show_members()
+            self.eth_pairs.show_members()
+            self.usdt_pairs.show_members()
+
 
 class Pair_Group(object):
 
@@ -42,11 +79,12 @@ class Pair_Group(object):
         self.pairs = []
         self.update_base_curr_price()
 
-    def add_pairs(self, *pairs):
+    def add_pairs(self, *args):
         self.pairs = []
-        for pair in pairs:
-            self.pairs.append(pair)
-            pair.add_to_group(self)
+        for arg in args:
+            new_trading_pair = Trading_Pair(arg[1], arg[2])
+            self.pairs.append(new_trading_pair)
+            new_trading_pair.add_to_group(self)
     
     def update_base_curr_price(self):
         data = requests.get("https://api.coinmarketcap.com/v1/ticker/" + self.base_curr.value).json()
@@ -54,6 +92,21 @@ class Pair_Group(object):
 
     def get_base_usd_price(self):
         return self.base_curr_price
+    def update_group(self, data):
+        for pair in self.pairs:
+            pair.update(data)
+
+    def log_group(self):
+        for pair in self.pairs:
+            pair.log()
+
+    def show_members(self):
+        for pair in self.pairs:
+            print (pair.market_name + " is a member of " + self.base_curr.value)
+
+    def initialize_logs(self):
+        for pair in self.pairs:
+            pair.initialize_logs()
 
 class Trading_Pair(object):
     
@@ -68,7 +121,6 @@ class Trading_Pair(object):
             if dataset['MarketName'] == self.market_name:
                 self.data = dataset
                 return
-        print(self.data)
 
     def add_to_group(self, group):
         self.parent_group = group
