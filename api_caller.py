@@ -49,12 +49,12 @@ def main():
     #     api.update_and_get_all_markets()
     all_data = api.update_and_get_all_markets()
     test_groups = Pair_Groups(all_data)
-    #test_groups.show_all()
-    while True:
-        test_groups.initialize_all_logs()
+    test_groups.initialize_all_logs()
+    try: 
         test_groups.update_all(api.update_and_get_all_markets())
         test_groups.log_all()
-        time.sleep(60)
+    except:
+        print("API Call Error")
 
 def log_asset():
     api = API("cfa2fe7b52fc446a8c02baed2df9ae32", "80e19ec06bb54a639ff403b2a63d36f4",)
