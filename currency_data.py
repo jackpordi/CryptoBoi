@@ -58,15 +58,15 @@ class Pair_Groups(object):
         self.eth_pairs.update_group(data)
         self.usdt_pairs.update_group(data)
 
-    def log_all(self):
-        self.btc_pairs.log_group()
-        self.eth_pairs.log_group()
-        self.usdt_pairs.log_group()
+    def log_all(self, path):
+        self.btc_pairs.log_group(path)
+        self.eth_pairs.log_group(path)
+        self.usdt_pairs.log_group(path)
 
-    def initialize_all_logs(self):
-        self.btc_pairs.initialize_logs()
-        self.eth_pairs.initialize_logs()
-        self.usdt_pairs.initialize_logs()
+    def initialize_all_logs(self,path):
+        self.btc_pairs.initialize_logs(path)
+        self.eth_pairs.initialize_logs(path)
+        self.usdt_pairs.initialize_logs(path)
 
     def show_all(self):
             self.btc_pairs.show_members()
@@ -99,17 +99,17 @@ class Pair_Group(object):
         for pair in self.pairs:
             pair.update(data)
 
-    def log_group(self):
+    def log_group(self, path):
         for pair in self.pairs:
-            pair.log()
+            pair.log(path)
 
     def show_members(self):
         for pair in self.pairs:
             print (pair.market_name + " is a member of " + self.base_curr.value)
 
-    def initialize_logs(self):
+    def initialize_logs(self, path):
         for pair in self.pairs:
-            pair.initialize_log()
+            pair.initialize_log(path)
 
 class Trading_Pair(object):
     
@@ -128,24 +128,24 @@ class Trading_Pair(object):
     def add_to_group(self, group):
         self.parent_group = group
 
-    def initialize_log(self):
-        log_file_name = "AssetLogs/" + self.market_name + ".csv"
+    def initialize_log(self, path):
+        log_file_name = path + "/" + self.market_name + ".csv"
         if not os.path.isfile(log_file_name):
             log_file = open(log_file_name, "a+")
             writer = csv.writer(log_file)
-            writer.writerow(["Time", "BasePrice", "USDPrice", "24Hr USD Volume"])
+            writer.writerow(["Time", "BasePrice Last", "BasePrice Ask", "BasePrice Bid", "Open Buy Orders", "Open Sell Orders","USDPrice", "24Hr USD Volume"])
             log_file.close()
 
-    def log(self):    
-        log_file = open("AssetLogs/" + self.market_name + ".csv", "a+")
+    def log(self,path):    
+        log_file = open(path + "/" + self.market_name + ".csv", "a+")
         writer = csv.writer(log_file)
-        current_time =  datetime.now() # Time
+        current_time =  self.data['TimeStamp']
         price = self.data['Last']
         usd_price = price * self.parent_group.get_base_usd_price()
         usd_volume = self.parent_group.get_base_usd_price() * self.data['BaseVolume']
         print(current_time, price, usd_price, usd_volume)
         # Timestamp, Price, to USD Price, 24Hr Volume
-        writer.writerow([current_time, price, usd_price, usd_volume])
+        writer.writerow([current_time, price, self.data['Ask'],self.data['Bid'],self.data['OpenBuyOrders'],self.data['OpenSellOrders'],usd_price, usd_volume])
         log_file.close()
 
 def main():
