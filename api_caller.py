@@ -47,12 +47,13 @@ def main():
     #     api.display_all_markets()
     #     time.sleep(10)
     #     api.update_and_get_all_markets()
+    path = "../Crypto_Data"
     all_data = api.update_and_get_all_markets()
     test_groups = Pair_Groups(all_data)
-    test_groups.initialize_all_logs()
+    test_groups.initialize_all_logs(path)
     try: 
         test_groups.update_all(api.update_and_get_all_markets())
-        test_groups.log_all()
+        test_groups.log_all(path)
     except:
         print("API Call Error")
 
