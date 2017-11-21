@@ -25,10 +25,16 @@ def main():
             usd_price.append(float(row[6]))
             volume.append(float(row[7]))
 
-    plt.plot(time, volume)
-    plt.title("ETH-USD Prices")
-    plt.ylabel("Price")
-    plt.xlabel("Time")
+    fig = plt.figure()
+    ax1 = fig.add_subplot(111)
+    ax1.plot(time, usd_price, 'b-')
+    ax1.set_ylabel("USD Price of ETH", color='b')
+    ax2 = ax1.twinx()
+    ax2.plot(time, volume, 'r-')
+    ax2.set_ylabel("24Hr Trading Volume of ETH", color='r')
+    for tl in ax2.get_yticklabels():
+        tl.set_color('r')
+    plt.title("XMR-USD Prices")
     plt.show()
 
 
