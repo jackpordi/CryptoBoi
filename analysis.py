@@ -34,7 +34,7 @@ def main():
     ax2.set_ylabel("24Hr Trading Volume of ETH", color='r')
     for tl in ax2.get_yticklabels():
         tl.set_color('r')
-    plt.title("XMR-USD Prices")
+    plt.title("ETH Prices and Volume Prices")
     plt.show()
 
 
