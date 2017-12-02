@@ -1,6 +1,6 @@
 from matplotlib import pyplot as plt
 from pandas import datetime, read_csv, Series, DataFrame, date_range
-from keras.layers import Dense, Dropout, Activation, LSTM
+from keras.layers import Dense, Dropout, Activation, LSTM, TimeDistributed
 from keras.models import Sequential
 import numpy as np
 import time
@@ -15,12 +15,13 @@ def load_data(csvname):
     #print(differenced_values)
 
     data = data.iloc[1:]
-    data['t'] = Series(differenced_values).values
+    data['x'] = Series(differenced_values).values
     #print(data)
-    for i in range(1,51):
-        data['x/' + str(i)] = data['t'].shift(-i)
-    for i in range(51,101):
-       data['y/' + str(i - 50)] = data['t'].shift(-i)
+    for i in range(0,50):
+        data['x/' + str(i)] = data['x'].shift(-i)
+    for i in range(0,50):
+       data['y/' + str(i)] = data['x'].shift(-(i + 50))
+    data = data.drop('x', 1)
     return start_data, data.dropna(axis=0, how='any')
 
 def build_model(layers):
@@ -42,10 +43,10 @@ def build_model(layers):
     model.add(Dropout(0.1))
 
     model.add(Dense(
-        units=layers[3]
+        units=layers[3],
+        activation='sigmoid'
         ))
 
-    model.add(Activation('tanh'))
 
     start=time.time()
     model.compile(loss='mse', optimizer='rmsprop')
@@ -58,16 +59,30 @@ def main():
     start_data, data = load_data("market-price.csv")
     train_data = data[:-100]
     test_data = data[-100:]
-    print(test_data['x'])
+    small_data = data[:10]
+    print(small_data.values[:,:50])
+    '''
+    # Create test and training X and Y data
+    train_x = []
+    train_y = []
+    for i in range(0,50):
+        train_x.append(train_data['x/' + str(i)].values)
+        train_y.append(train_data['y/' + str(i)].values)
+    #print(train_x)
     '''
     # Build model
-    model = build_model([1, 50, 100, 1])
+    model = build_model([50, 50, 100, 1])
+    model.summary()
     # Fit model
+    train_x = train_data.values[:,:50]
+    train_x = np.reshape(train_x, (1, train_x.shape[0], train_x.shape[1]))
+    train_y = train_data.values[:,:-50]
+    train_y = np.reshape(train_y, (1, train_y.shape[0], train_y.shape[1]))
     model.fit(
-            train_data['Date'],
-            train_data['t'],
-            batch_size=50,
-            nb_epochs=1,
+            train_x,
+            train_y,
+            batch_size=10,
+            epochs=1,
             validation_split=0.05
             )
     # Use model for prediction
@@ -77,8 +92,6 @@ def main():
     plt.xlabel("Date")
     ax.legend(["BTC"])
     plt.show()
-    '''
-
 
 if __name__ == '__main__':
     main()
