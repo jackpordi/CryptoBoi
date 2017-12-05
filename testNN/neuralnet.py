@@ -24,13 +24,14 @@ def load_data(csvname):
     data = data.drop('x', 1)
     return start_data, data.dropna(axis=0, how='any')
 
-def build_model(layers):
+def build_model():
     model = Sequential()
 
-    model.add(Dense(
+    model.add(LSTM(
         50,
-        input_shape=(50,),
-        activation='sigmoid'
+        input_shape=(530, 50),
+        activation='sigmoid',
+        return_sequences=True
         ))
 
     #model.add(Dense(100))
@@ -83,17 +84,18 @@ def main():
     #print(train_x)
     '''
     # Build model
-    model = build_model([1, 50, 100, 1])
+    model = build_model()
     #print(model.input_shape)
     model.summary()
     # Fit model
     train_x = train_data.values[:,:50]
     #print(train_x.shape)
-    train_x = np.reshape(train_x, (530, 50))
+    train_x = np.reshape(train_x, (1, 530, 50))
     #print(train_x.shape)
     #print(train_x)
     train_y = train_data.values[:,-50:]
-    train_y = np.reshape(train_y, (530, 50))
+    train_y = np.reshape(train_y, (1, 530, 50))
+    print("shape of training input: ", train_x.shape)
     model.fit(
             train_x,
             train_y,
