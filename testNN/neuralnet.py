@@ -1,6 +1,6 @@
 from matplotlib import pyplot as plt
 from pandas import datetime, read_csv, Series, DataFrame, date_range
-from keras.layers import Dense, Dropout, Activation, LSTM, TimeDistributed
+from keras.layers import Dense, Dropout, Activation, LSTM, TimeDistributed, Flatten
 from keras.models import Sequential
 import numpy as np
 import time
@@ -27,25 +27,35 @@ def load_data(csvname):
 def build_model(layers):
     model = Sequential()
 
-    model.add(LSTM(
-        input_shape=(None, layers[0]),
-        units=layers[1],
-        return_sequences=True
-        ))
-
-    model.add(Dropout(0.1))
-
-    model.add(LSTM(
-        layers[2],
-        return_sequences=False
-        ))
-
-    model.add(Dropout(0.1))
-
     model.add(Dense(
-        units=layers[3],
+        50,
+        input_shape=(50,),
         activation='sigmoid'
         ))
+
+    #model.add(Dense(100))
+
+    # model.add(LSTM(
+    #     50,
+    #     input_shape=(530,50),
+    #     return_sequences=True
+    #     ))
+
+    # model.add(Dropout(0.1))
+
+    # model.add(LSTM(
+    #     50,
+    #     return_sequences=False
+    #     ))
+
+    # model.add(Dropout(0.1))
+    
+
+    #model.add(Dense(
+    #    input_shape=(530,50),
+    #    units=50,
+    #    activation='sigmoid'
+    #    ))
 
 
     start=time.time()
@@ -59,8 +69,10 @@ def main():
     start_data, data = load_data("market-price.csv")
     train_data = data[:-100]
     test_data = data[-100:]
+    test_x = test_data.values[:,:50]
+    test_y = test_data.values[:,-50:]
+    print(test_x.shape)
     small_data = data[:10]
-    print(small_data.values[:,:50])
     '''
     # Create test and training X and Y data
     train_x = []
@@ -71,27 +83,34 @@ def main():
     #print(train_x)
     '''
     # Build model
-    model = build_model([50, 50, 100, 1])
+    model = build_model([1, 50, 100, 1])
+    #print(model.input_shape)
     model.summary()
     # Fit model
     train_x = train_data.values[:,:50]
-    train_x = np.reshape(train_x, (1, train_x.shape[0], train_x.shape[1]))
-    train_y = train_data.values[:,:-50]
-    train_y = np.reshape(train_y, (1, train_y.shape[0], train_y.shape[1]))
+    #print(train_x.shape)
+    train_x = np.reshape(train_x, (530, 50))
+    #print(train_x.shape)
+    #print(train_x)
+    train_y = train_data.values[:,-50:]
+    train_y = np.reshape(train_y, (530, 50))
     model.fit(
             train_x,
             train_y,
             batch_size=10,
-            epochs=1,
+            epochs=100,
             validation_split=0.05
             )
     # Use model for prediction
+    pred = model.predict(np.reshape(test_x[1], (1,50)))
+    print(pred)
+    print(test_y[1])
     #print(data)
     ax = data.plot(legend='BTC Prices')
-    plt.ylabel("Price in USD")
-    plt.xlabel("Date")
-    ax.legend(["BTC"])
-    plt.show()
+    # plt.ylabel("Price in USD")
+    # plt.xlabel("Date")
+    # ax.legend(["BTC"])
+    # plt.show()
 
 if __name__ == '__main__':
     main()
