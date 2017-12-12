@@ -3,6 +3,8 @@
 import json
 import requests
 import time
+import hmac
+import hashlib
 from baseCurr import BaseCurrency
 from currency_data import Pair_Group, Pair_Groups, Asset, Trading_Pair
 
@@ -40,6 +42,15 @@ class API(object):
             to_print = '{:<9} {:<6} {:<13} {:<6} {:<10}'.format(currency['MarketName'],"price:",str(price_in_btc), "USD price =", price_in_usd)
             time.sleep(0.05)
             print(to_print)
+    
+    def get_open_orders(self):
+        nonce = int(time.time())
+        url = "https://bittrex.com/api/v1.1/account/getbalances?apikey=" + self.public_key + "&nonce=" + str(nonce)
+        print(url)
+        apisign = hmac.new(self.private_key.encode(), url.encode(), hashlib.sha256).hexdigest()
+        print(apisign)
+        ret = requests.get(url, headers={'apisign': apisign}).json()
+        print(ret)
             
 def main():
     api = API("cfa2fe7b52fc446a8c02baed2df9ae32", "80e19ec06bb54a639ff403b2a63d36f4",)
@@ -73,3 +84,5 @@ def log_asset():
 
 if __name__ == '__main__':
     main()
+    #api = API("cfa2fe7b52fc446a8c02baed2df9ae32", "80e19ec06bb54a639ff403b2a63d36f4",)
+    #api.get_open_orders()

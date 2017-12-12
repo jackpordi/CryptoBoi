@@ -34,7 +34,7 @@ def build_model():
         return_sequences=True
         ))
 
-    #model.add(Dense(100))
+    #model.add(Dense(50))
 
     # model.add(LSTM(
     #     50,
@@ -44,10 +44,10 @@ def build_model():
 
     # model.add(Dropout(0.1))
 
-    # model.add(LSTM(
-    #     50,
-    #     return_sequences=False
-    #     ))
+    model.add(LSTM(
+        50,
+        return_sequences=True
+        ))
 
     # model.add(Dropout(0.1))
     
@@ -72,7 +72,7 @@ def main():
     test_data = data[-100:]
     test_x = test_data.values[:,:50]
     test_y = test_data.values[:,-50:]
-    print(test_x.shape)
+    #print(test_x.shape)
     small_data = data[:10]
     '''
     # Create test and training X and Y data
@@ -90,7 +90,7 @@ def main():
     # Fit model
     train_x = train_data.values[:,:50]
     #print(train_x.shape)
-    train_x = np.reshape(train_x, (1, 530, 50))
+    train_x = np.reshape(train_x, (1, 1, 530, 50))
     #print(train_x.shape)
     #print(train_x)
     train_y = train_data.values[:,-50:]
@@ -101,11 +101,11 @@ def main():
             train_y,
             batch_size=10,
             epochs=100,
-            validation_split=0.05
+            validation_split=0
             )
     # Use model for prediction
-    pred = model.predict(np.reshape(test_x[1], (1,50)))
-    print(pred)
+    #pred = model.predict(np.reshape(test_x[1], (1,1,50)))
+    #print(pred)
     print(test_y[1])
     #print(data)
     ax = data.plot(legend='BTC Prices')
