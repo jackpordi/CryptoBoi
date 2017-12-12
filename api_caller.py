@@ -42,6 +42,9 @@ class API(object):
     def update_and_get_all_markets(self):
         self.all_markets = self.public_query("getmarketsummaries")['result']
         return self.all_markets
+
+    def get_market(self, market):
+        return self.public_query("getmarketsummary?market=" + market)['result']
 #
     def display_all_markets(self):
         for currency in self.update_and_get_all_markets():
@@ -59,7 +62,7 @@ class API(object):
         url += urlencode(params)
         apisign = hmac.new(self.private_key.encode(), url.encode(), hashlib.sha512).hexdigest()
         ret = requests.get(url, headers={'apisign': str(apisign)}).json()['result']
-        print(url)
+        #print(url)
         return ret
 
     def get_balances(self):
@@ -85,6 +88,18 @@ class API(object):
 
     def sell_limit(self, market, quantity, rate):
         return self.private_query("market/sell", params={'market': market, 'quantity': quantity, 'rate': rate})
+
+    def get_order(self, uuid):
+        return self.private_query("account/getorder", params={'uuid':uuid})
+
+    def cancel_order(self, uuid):
+        return self.private_query("market/cancel", params={'uuid':uuid})
+
+    def get_open_orders(self, market=None):
+        if not market:
+            return self.private_query("market/getopenorders")
+        else:
+            return self.private_query("market/getopenorders", params={'market': market})
             
 def main():
     api = API("cfa2fe7b52fc446a8c02baed2df9ae32", "80e19ec06bb54a639ff403b2a63d36f4",)
@@ -117,11 +132,22 @@ def get_keys(f):
         lines =file.readlines()
     return lines[0].replace('\n', ''), lines[1].replace('\n', '')
 
+def print_json(to_print):
+    print(json.dumps(to_print, sort_keys=True, indent=4, separators=(',', ': ')))
+
 if __name__ == '__main__':
     #main()
-    pubk, privk = get_keys('keys.txt')
+    pubk, privk = get_keys('keys2.txt')
     api = API(pubk, privk,)
     result = api.get_balances()
-    btc = api.get_balance('BTC')
-    print(json.dumps(btc, sort_keys=True, indent=4, separators=(',', ': ')))
-    print(api.balances)
+    buy = api.buy_limit('BTC-LTC', 0.05, 0.01)
+    print_json(buy)
+    uuid = buy['uuid']
+    order = api.get_order(uuid)
+    print_json(order)
+    all_orders = api.get_open_orders()
+    print_json(all_orders)
+    api.cancel_order(uuid)
+    all_orders = api.get_open_orders()
+    print_json(all_orders)
+
