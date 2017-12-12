@@ -5,6 +5,13 @@ import requests
 import time
 import hmac
 import hashlib
+try:
+    from urllib import urlencode
+    from urlparse import urljoin
+except ImportError:
+    from urllib.parse import urlencode
+    from urllib.parse import urljoin
+
 from baseCurr import BaseCurrency
 from currency_data import Pair_Group, Pair_Groups, Asset, Trading_Pair
 
@@ -43,21 +50,25 @@ class API(object):
             time.sleep(0.05)
             print(to_print)
     
-    def get_open_orders(self):
-        nonce = int(time.time())
-        url = "https://bittrex.com/api/v1.1/account/getbalances?apikey=" + self.public_key + "&nonce=" + str(nonce)
+    def private_query(self, ordertype, params={}):
+        nonce = int(time.time()) * 1000
+        url = "https://bittrex.com/api/v1.1/" + ordertype
+        url += "?apikey=" + self.public_key
+        url += "&nonce=" + str(nonce) +'&'
+        url += urlencode(params)
+        apisign = hmac.new(self.private_key.encode(), url.encode(), hashlib.sha512).hexdigest()
+        ret = requests.get(url, headers={'apisign': str(apisign)}).json()
         print(url)
-        apisign = hmac.new(self.private_key.encode(), url.encode(), hashlib.sha256).hexdigest()
-        print(apisign)
-        ret = requests.get(url, headers={'apisign': apisign}).json()
-        print(ret)
+        return ret
+
+    def get_balance(self, asset):
+        return self.private_query("account/getbalance", params={'currency': asset})
+
+    def get_balances(self):
+        return self.private_query("account/getbalances")
             
 def main():
     api = API("cfa2fe7b52fc446a8c02baed2df9ae32", "80e19ec06bb54a639ff403b2a63d36f4",)
-    # while True:
-    #     api.display_all_markets()
-    #     time.sleep(10)
-    #     api.update_and_get_all_markets()
     path = "../Crypto_Data"
     all_data = api.update_and_get_all_markets()
     test_groups = Pair_Groups(all_data)
@@ -83,6 +94,9 @@ def log_asset():
         btc_group.update_base_curr_price()
 
 if __name__ == '__main__':
-    main()
-    #api = API("cfa2fe7b52fc446a8c02baed2df9ae32", "80e19ec06bb54a639ff403b2a63d36f4",)
-    #api.get_open_orders()
+    #main()
+    api = API("a0bded8a92b1462fa4a5388c0ac69ff8", "e7feb58fa05043bdb5bc9dd4468b7417",)
+    result = api.get_balances()
+    btc = api.get_balance('BTC')
+    print(btc)
+    print(json.dumps(result, sort_keys=True, indent=4, separators=(',', ': ')))
