@@ -6,90 +6,60 @@ import numpy as np
 import time
 
 def load_data(csvname):
-    data = read_csv(csvname, parse_dates=[0], header=None, names=['Date', 'x'], index_col=0)
+    data = read_csv(csvname, parse_dates=[0], header=0, names=['Date', 'x'], index_col=0)
     start_data = data[0:1]
-    differenced_values = []
-    for i in range(0, len(data) - 1):
-        value = ((data['x'][i + 1] - data['x'][i]) / data['x'][i]) * 100
+    differenced_values = [0]
+    for i in range(1, len(data) - 1):
+        value = ((data['x'][i] - data['x'][i-1]) / data['x'][i]) * 100
         differenced_values.append(value)
-    #print(differenced_values)
 
     data = data.iloc[1:]
     data['diff'] = Series(differenced_values).values
     #print(data)
     return start_data, data.dropna(axis=0, how='any')
 
-def build_model():
-    model = Sequential()
+def load_data_max(csvname):
+    data = read_csv(csvname, parse_dates=[0], header=0, names=['Date', 'x'], index_col=0)
+    start_data = data[0:1]
+    differenced_values = []
+    for i in range(0, len(data) - 1):
+        value = ((data['x'][i + 1] - data['x'][i]) / data['x'][i]) * 100
+        differenced_values.append(value)
+    differenced_values.append(0)
 
-    model.add(LSTM(
-        1,
-        input_shape=(629, 1),
-        activation='sigmoid',
-        return_sequences=True
-        ))
-
-    #model.add(Dense(100))
-
-    # model.add(LSTM(
-    #     50,
-    #     input_shape=(530,50),
-    #     return_sequences=True
-    #     ))
-
-    # model.add(Dropout(0.1))
-
-    # model.add(LSTM(
-    #     50,
-    #     return_sequences=False
-    #     ))
-
-    # model.add(Dropout(0.1))
-    
-
-    #model.add(Dense(
-    #    input_shape=(530,50),
-    #    units=50,
-    #    activation='sigmoid'
-    #    ))
-
-
-    start=time.time()
-    model.compile(loss='mse', optimizer='rmsprop')
-    print("Model Compilation time:", time.time() - start, 'seconds')
-
-    return model
+    data['diff'] = Series(differenced_values).values
+    #print(data)
+    return start_data, data.dropna(axis=0, how='any')
 
 def main2():
-    start_data, data = load_data("market-price.csv")
-    print(data.values)
+    start_data, data = load_data("simple-prices2.csv")
+    print(data.values[-15:])
     btc_wallet = 1
     usd_wallet = 0
+    round = 0
+    print(data.values[0])
+    print("Current OMG: ", btc_wallet, "Current USD: ", usd_wallet)
     for price, delta in data.values:
-        print("Price: ", price, "Delta: ", delta)
+        #print("Price: ", price, "Delta: ", delta)
         if btc_wallet > 0:
             if delta < 0:
-                print("Selling Bitcoin for USD")
+                #print("Selling ETH for USD")
                 usd_wallet = btc_wallet * price
                 btc_wallet = 0
-            else:
-                print("BTC Price is rising, doing nothing")
         elif usd_wallet > 0:
             if delta > 0:
-                print("BTC Price is rising, buying BTC")
+                #print("ETH Price is rising, buying BTC")
                 btc_wallet = (usd_wallet / price)
                 usd_wallet = 0
-            else:
-                print("BTC Price is decreasing, doing nothing")
-        else:
-            print("Error! Both USD and BTC are 0")
-        print(btc_wallet, usd_wallet)
-    print(btc_wallet, usd_wallet)
+        round += 1
+        if round % 10 == 0:
+            print("Current OMG: ", btc_wallet, "Current USD: ", usd_wallet)
+    print("Current OMG: ", btc_wallet, "Current USD: ", usd_wallet)
 
 
 def main():
     # Loads data from CSV file
-    start_data, data = load_data("market-price.csv")
+    start_data, data = load_data("simple-prices2.csv")
     train_data = data[:-100]
     test_data = data[-100:]
     print(data.shape)

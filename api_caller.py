@@ -24,6 +24,7 @@ class API(object):
         self.api_url = "https://bittrex.com/api/"
         self.all_markets = self.update_and_get_all_markets()
         self.btc_price = self.update_btc_price()
+        self.get_balances()
 
     def public_query(self, query_type, *args):
         url = self.api_url + self.api_version + '/public/' + query_type
@@ -57,15 +58,33 @@ class API(object):
         url += "&nonce=" + str(nonce) +'&'
         url += urlencode(params)
         apisign = hmac.new(self.private_key.encode(), url.encode(), hashlib.sha512).hexdigest()
-        ret = requests.get(url, headers={'apisign': str(apisign)}).json()
+        ret = requests.get(url, headers={'apisign': str(apisign)}).json()['result']
         print(url)
         return ret
 
-    def get_balance(self, asset):
-        return self.private_query("account/getbalance", params={'currency': asset})
-
     def get_balances(self):
-        return self.private_query("account/getbalances")
+        self.balances = {}
+        res = self.private_query("account/getbalances")
+        for asset in res:
+            self.balances[asset['Currency']] = asset
+        return res
+
+    def get_balance(self, asset):
+        res = self.private_query("account/getbalance", params={'currency': asset})
+        self.balances[res['Currency']] = res
+        return res
+
+    def get_order_history(self, market=None):
+        if not market:
+            return self.private_query("account/getorderhistory")
+        else:
+            return self.private_query("account/getorderhistory", params={'market': market})
+
+    def buy_limit(self, market, quantity, rate):
+        return self.private_query("market/buylimit", params={'market': market, 'quantity': quantity, 'rate': rate})
+
+    def sell_limit(self, market, quantity, rate):
+        return self.private_query("market/sell", params={'market': market, 'quantity': quantity, 'rate': rate})
             
 def main():
     api = API("cfa2fe7b52fc446a8c02baed2df9ae32", "80e19ec06bb54a639ff403b2a63d36f4",)
@@ -93,10 +112,16 @@ def log_asset():
         time.sleep(60)
         btc_group.update_base_curr_price()
 
+def get_keys(f):
+    with open(f, 'r') as file:
+        lines =file.readlines()
+    return lines[0].replace('\n', ''), lines[1].replace('\n', '')
+
 if __name__ == '__main__':
     #main()
-    api = API("a0bded8a92b1462fa4a5388c0ac69ff8", "e7feb58fa05043bdb5bc9dd4468b7417",)
+    pubk, privk = get_keys('keys.txt')
+    api = API(pubk, privk,)
     result = api.get_balances()
     btc = api.get_balance('BTC')
-    print(btc)
-    print(json.dumps(result, sort_keys=True, indent=4, separators=(',', ': ')))
+    print(json.dumps(btc, sort_keys=True, indent=4, separators=(',', ': ')))
+    print(api.balances)

@@ -22,6 +22,7 @@ class Asset(object):
         for pair in pairs:
             self.markets.add(pair)
 
+# Class for all pair groups
 class Pair_Groups(object):
 
     def __init__(self, rawjson):
@@ -74,6 +75,7 @@ class Pair_Groups(object):
             self.usdt_pairs.show_members()
 
 
+# Class for a single pair group
 class Pair_Group(object):
 
     def __init__(self, base_curr):
@@ -111,6 +113,7 @@ class Pair_Group(object):
         for pair in self.pairs:
             pair.initialize_log(path)
 
+# Class for a single trading pair
 class Trading_Pair(object):
     
     def __init__(self, base_asset, quote_asset):
@@ -148,16 +151,3 @@ class Trading_Pair(object):
         writer.writerow([current_time, price, self.data['Ask'],self.data['Bid'],self.data['OpenBuyOrders'],self.data['OpenSellOrders'],usd_price, usd_volume])
         log_file.close()
 
-def main():
-    allpairs = Pair_Groups()
-    allpairs.show_all_base_currs()
-
-# if __name__ == "__main__":
-#     eth_asset = Asset("ETH")
-#     btc_asset = Asset("BTC")
-#     btc_eth_pair = Trading_Pair(btc_asset, eth_asset)
-#     btc_group = Pair_Group(BaseCurrency.BTC)
-#     btc_group.add_pairs(btc_eth_pair)
-#     btc_eth_pair.log()
-#     print(btc_eth_pair.market_name)
-#     print(datetime.now())
