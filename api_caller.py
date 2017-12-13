@@ -61,45 +61,55 @@ class API(object):
         url += "&nonce=" + str(nonce) +'&'
         url += urlencode(params)
         apisign = hmac.new(self.private_key.encode(), url.encode(), hashlib.sha512).hexdigest()
-        ret = requests.get(url, headers={'apisign': str(apisign)}).json()['result']
-        #print(url)
+        ret = requests.get(url, headers={'apisign': str(apisign)}).json()
         return ret
 
     def get_balances(self):
         self.balances = {}
-        res = self.private_query("account/getbalances")
+        res = self.private_query("account/getbalances")['result']
         for asset in res:
             self.balances[asset['Currency']] = asset
-        return res
+        return self.balances
 
     def get_balance(self, asset):
-        res = self.private_query("account/getbalance", params={'currency': asset})
+        res = self.private_query("account/getbalance", params={'currency': asset})['result']
         self.balances[res['Currency']] = res
         return res
 
     def get_order_history(self, market=None):
         if not market:
-            return self.private_query("account/getorderhistory")
+            return self.private_query("account/getorderhistory")['result']
         else:
-            return self.private_query("account/getorderhistory", params={'market': market})
+            return self.private_query("account/getorderhistory", params={'market': market})['result']
 
     def buy_limit(self, market, quantity, rate):
-        return self.private_query("market/buylimit", params={'market': market, 'quantity': quantity, 'rate': rate})
+        return self.private_query("market/buylimit", params={'market': market, 'quantity': quantity, 'rate': rate})['result']
 
     def sell_limit(self, market, quantity, rate):
-        return self.private_query("market/sell", params={'market': market, 'quantity': quantity, 'rate': rate})
+        return self.private_query("market/sell", params={'market': market, 'quantity': quantity, 'rate': rate})['result']
 
     def get_order(self, uuid):
-        return self.private_query("account/getorder", params={'uuid':uuid})
+        return self.private_query("account/getorder", params={'uuid':uuid})['result']
 
     def cancel_order(self, uuid):
         return self.private_query("market/cancel", params={'uuid':uuid})
 
     def get_open_orders(self, market=None):
         if not market:
-            return self.private_query("market/getopenorders")
+            return self.private_query("market/getopenorders")['result']
         else:
-            return self.private_query("market/getopenorders", params={'market': market})
+            return self.private_query("market/getopenorders", params={'market': market})['result']
+    
+    def cancel_all_orders(self):
+        if len(self.get_open_orders()) > 0:
+            carry = True
+            for item in self.get_open_orders():
+                cancel = self.cancel_order(item['OrderUuid'])
+                carry = carry and cancel['success']
+            if carry:
+                time.sleep(3)
+                return True
+            else: return self.cancel_all_orders()
             
 def main():
     api = API("cfa2fe7b52fc446a8c02baed2df9ae32", "80e19ec06bb54a639ff403b2a63d36f4",)
@@ -138,16 +148,4 @@ def print_json(to_print):
 if __name__ == '__main__':
     #main()
     pubk, privk = get_keys('keys2.txt')
-    api = API(pubk, privk,)
-    result = api.get_balances()
-    buy = api.buy_limit('BTC-LTC', 0.05, 0.01)
-    print_json(buy)
-    uuid = buy['uuid']
-    order = api.get_order(uuid)
-    print_json(order)
-    all_orders = api.get_open_orders()
-    print_json(all_orders)
-    api.cancel_order(uuid)
-    all_orders = api.get_open_orders()
-    print_json(all_orders)
 

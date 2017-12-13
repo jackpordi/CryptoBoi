@@ -16,37 +16,17 @@ def print_json(to_print):
     print(json.dumps(to_print, sort_keys=True, indent=4, separators=(',', ': ')))
 
 if __name__ == '__main__':
-    data = load_data('../Crypto_Data/ETH-LTC.csv')[:-650]
-    sets = [5, 10, 15, 20, 30, 45, 60, 90 ] #300, 720, 3600, 7200]
-    #sets = [20, 25, 30, 40, 55, 75, 100, 130, 150]
-    # for i in sets:
-    #     last = data['USD Price'][-i:]
-    #     print("For the last", i, "entries:")
-    #     print("    Mean:")
-    #     print("   ",last.mean())
-    #     print("    Standard Deviations:")
-    #     print("   ", last.std())
-    #     print("    Standard Deviation Relative to Means:")
-    #     print("   ", last.std() / last.mean())
-    #     print("")
-    # diffs = data.pct_change()
-    # diffs = diffs.applymap(lambda x: 100 * x)
-    # price_changes = diffs['USD Price']
-    # for i in sets:
-    #     last = diffs['USD Price'][-i:]
-    #     print("For the last", i, "entries percentage difference:")
-    #     print("    Mean:")
-    #     print("   ",last.mean())
-    #     print("    Standard Deviations:")
-    #     print("   ", last.std())
-    #print(price_changes.std())
-    #print(price_changes.mean())
-    #lm_originals = np.polyfit([x for x in range(1, len(data) + 1)], data['Last'], 1)
-    #print(lm_originals)
+    name = 'ETH-MCO'
+    data = load_data('../Crypto_Data/' + name + '.csv')[:-650]
+    sets = [5] #, 10, 15, 20, 30, 45, 60, 90 ] #300, 720, 3600, 7200]
+    fig, ax1 = plt.subplots()
+    ax1.plot(data['Last'][:-90], 'b')
     eth_wallet = 1
     ltc_wallet = 0
     history = []
-    for j in range(5000, 6000): #len(data) - 90):
+    value_history = []
+    buys = 0
+    for j in range(0, len(data) - 90):
         current_data = data[j:j+90]
         current_stat = {}
         current_stat['Price'] = current_data['Last'][-1]
@@ -57,6 +37,8 @@ if __name__ == '__main__':
             istat['RegressionCoefficient'] = result.rsquared
             istat['RegressionCoefficientSquared'] = result.rsquared ** 2
             istat['Gradient'] = result.params[1]
+            istat['STD'] = data_set.std()
+            istat['Mean'] = data_set.mean()
             current_stat['Last' + str(i)] = istat
             #print("\nFor the last", i, "entries:")
             #print("   R Squared Correlation Coefficient:    ", result.rsquared ** 2)
@@ -65,25 +47,36 @@ if __name__ == '__main__':
             # best_fit_values = [(result.params[1] * x) + result.params[0] for x in range(1, i + 1)]
             # plt.plot(data_set)
             # plt.plot(data_set.index, best_fit_values)
-        if current_stat['Last10']['Gradient'] * current_stat['Last10']['RegressionCoefficientSquared'] > 0.00001:
-            if eth_wallet != 0:
-                print("Buying ETH, round =", j)
-                print(eth_wallet)
-                print(ltc_wallet)
-                print(current_stat['Price'])
-                ltc_wallet == eth_wallet / current_stat['Price']
-                eth_wallet = 0
-                print(eth_wallet)
-                print(ltc_wallet)
-        elif current_stat['Last10']['Gradient'] * current_stat['Last10']['RegressionCoefficientSquared'] < -0.00001:
-            if ltc_wallet != 0:
-                print("Selling ETH, round =", j)
-                eth_wallet = ltc_wallet * current_stat['Price']
-                ltc_wallet == 0
+        to_use = 'Last5'
+        confidence = current_stat[to_use]['Gradient'] * current_stat[to_use]['RegressionCoefficientSquared'] / current_stat['Price']
+        if not np.isinf(confidence):
+            if confidence < -0.001:
+                if eth_wallet != 0:
+                    #print("Buying ETH, round =", j)
+                    ltc_wallet = eth_wallet * 0.9975 / current_stat['Price']
+                    buys += 1
+                    eth_wallet = 0
+            elif confidence > 0.001:
+                if ltc_wallet != 0:
+                    eth_wallet = ltc_wallet * current_stat['Price'] *0.9975
+                    #print("Selling ETH, round =", j)
+                    buys += 1
+                    ltc_wallet = 0
+            if j % 1440 == 0:
+                print("Buy/Sell Confidence: ", confidence)
+                print("   At Round:         ", j)
+                print("   Mean:             ", current_stat['Last5']['Mean'])
+                print("   STD:              ", current_stat['Last5']['STD'])
+                print("   No of buys :      ", buys)
+                print("   Current ETH Value:", eth_wallet if eth_wallet != 0 else ltc_wallet * current_stat['Price'])
+                print("   Current LTC Value:", ltc_wallet if ltc_wallet != 0 else eth_wallet / current_stat['Price'])
+                print()
+            value_history.append(eth_wallet if eth_wallet != 0 else ltc_wallet * current_stat['Price'])
+        else:
+            value_history.append(eth_wallet if eth_wallet != 0 else ltc_wallet * current_stat['Price'])
         history.append(current_stat)
-        if j % 100 == 0:
-            print("At Round: ", j)
-            print("Current ETH Value:", eth_wallet)
-            print("Current LTC Value:", ltc_wallet)
-    #print_json(history)
+    print("No of buys:", buys)
+    ax2 = ax1.twinx()
+    ax2.plot(data[:-90].index, value_history, 'r')
+    plt.savefig('test_graphs/' + name + '.png')
     plt.show()
