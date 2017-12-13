@@ -16,18 +16,18 @@ def print_json(to_print):
     print(json.dumps(to_print, sort_keys=True, indent=4, separators=(',', ': ')))
 
 if __name__ == '__main__':
-    name = 'ETH-MCO'
-    data = load_data('../Crypto_Data/' + name + '.csv')[:-650]
+    name = 'ETH-XRP'
+    data = load_data('../Crypto_Data/' + name + '.csv')[-10000:-600]
     sets = [5] #, 10, 15, 20, 30, 45, 60, 90 ] #300, 720, 3600, 7200]
     fig, ax1 = plt.subplots()
-    ax1.plot(data['Last'][:-90], 'b')
+    ax1.plot(data['Last'][:-5], 'b')
     eth_wallet = 1
     ltc_wallet = 0
     history = []
     value_history = []
     buys = 0
-    for j in range(0, len(data) - 90):
-        current_data = data[j:j+90]
+    for j in range(0, len(data) -5 ):
+        current_data = data[j:j+5]
         current_stat = {}
         current_stat['Price'] = current_data['Last'][-1]
         for i in sets:
@@ -77,6 +77,6 @@ if __name__ == '__main__':
         history.append(current_stat)
     print("No of buys:", buys)
     ax2 = ax1.twinx()
-    ax2.plot(data[:-90].index, value_history, 'r')
+    ax2.plot(data[:-5].index, value_history, 'r')
     plt.savefig('test_graphs/' + name + '.png')
     plt.show()

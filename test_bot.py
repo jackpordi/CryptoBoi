@@ -39,6 +39,7 @@ if __name__ == '__main__':
     print(price_history)
     j = 0
     while True:
+        balances = api.get_balances()
         eth_wallet = balances['ETH']['Available']
         omg_wallet = balances['OMG']['Available']
         market = api.get_market(name)
@@ -51,7 +52,7 @@ if __name__ == '__main__':
             data_set = Series(price_history[-i:])
             result = sm.OLS(DataFrame(data_set), statsmodels.tools.add_constant([x for x in range(1, 6)])).fit()
             #print(result.summary())
-            istat['RegressionCoefficient'] = result.rsquared
+            #istat['RegressionCoefficient'] = result.rsquared
             istat['RegressionCoefficientSquared'] = result.rsquared ** 2
             istat['Gradient'] = result.params[1]
             istat['STD'] = data_set.std()
@@ -63,16 +64,15 @@ if __name__ == '__main__':
             if confidence < -0.001:
                 print("Confidence < -0.001")
                 if eth_wallet > 0.1:
-                    print("Selling ETH for OMG, round =", j)
-                    order = api.buy_limit(name, eth_wallet / current_stat['Price'], current_stat['Price'])
+                    print("Selling ETH for OMG, round =", j, "Buy Quantity: ", eth_wallet / current_stat['Price'])
+                    order = api.buy_limit(name, eth_wallet * 0.99 / current_stat['Price'], current_stat['Price'])
                     buys += 1
                     print("Order:  ", order)
             elif confidence > 0.001:
                 print("Confidence > 0.001")
                 if omg_wallet > 0.5 :
-                    eth_to_buy = omg_wallet * current_stat['Price']
-                    print("Selling OMG for ETH, round =", j)
-                    order = api.sell_limit(name, omg_wallet, current_stat['Price'])
+                    print("Selling OMG for ETH, round =", j, "Sell Quantity: ", omg_wallet)
+                    order = api.sell_limit(name, omg_wallet * 0.99, current_stat['Price'])
                     buys += 1
             print("Current order UUIDs: ")
             print_json(api.get_open_orders())

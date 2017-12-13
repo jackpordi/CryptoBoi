@@ -150,6 +150,5 @@ if __name__ == '__main__':
     pubk, privk = get_keys('keys2.txt')
     api = API(pubk, privk)
     print_json(api.get_open_orders())
-    cancel = api.cancel_all_orders()
-    print_json(cancel)
+    print_json(api.buy_limit('ETH-OMG', 1, 0.01))
     print_json(api.get_open_orders())
