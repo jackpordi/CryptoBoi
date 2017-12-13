@@ -31,7 +31,7 @@ if __name__ == '__main__':
     price_history = []
     value_history = []
     buys = 0
-    for i in range(0,5):
+    for i in range(0,4):
         market = api.get_market(name)
         print_json(market)
         price_history.append(market[0]['Last'])
@@ -62,20 +62,18 @@ if __name__ == '__main__':
         if not np.isinf(confidence):
             if confidence < -0.001:
                 print("Confidence < -0.001")
-                if eth_wallet != 0:
+                if eth_wallet > 0.1:
                     print("Selling ETH for OMG, round =", j)
                     order = api.buy_limit(name, eth_wallet / current_stat['Price'], current_stat['Price'])
                     buys += 1
                     print("Order:  ", order)
             elif confidence > 0.001:
                 print("Confidence > 0.001")
-                if omg_wallet != 0:
+                if omg_wallet > 0.5 :
                     eth_to_buy = omg_wallet * current_stat['Price']
                     print("Selling OMG for ETH, round =", j)
                     order = api.sell_limit(name, omg_wallet, current_stat['Price'])
                     buys += 1
-                    omg_wallet = 0
-                    print("Order:  ", order['uuid'])
             print("Current order UUIDs: ")
             print_json(api.get_open_orders())
             print("Buy/Sell Confidence: ", confidence)
@@ -84,6 +82,8 @@ if __name__ == '__main__':
             print("   Mean:             ", current_stat['Last5']['Mean'])
             print("   STD:              ", current_stat['Last5']['STD'])
             print("   No of buys :      ", buys)
+            print("   Current Actual ETH Count:", eth_wallet)
+            print("   Current Actual OMG Count:", omg_wallet)
             print("   Current ETH Value:", eth_wallet if eth_wallet != 0 else omg_wallet * current_stat['Price'])
             print("   Current OMG Value:", omg_wallet if omg_wallet != 0 else eth_wallet / current_stat['Price'])
             print()

@@ -83,10 +83,10 @@ class API(object):
             return self.private_query("account/getorderhistory", params={'market': market})['result']
 
     def buy_limit(self, market, quantity, rate):
-        return self.private_query("market/buylimit", params={'market': market, 'quantity': quantity, 'rate': rate})['result']
+        return self.private_query("market/buylimit", params={'market': market, 'quantity': quantity, 'rate': rate})
 
     def sell_limit(self, market, quantity, rate):
-        return self.private_query("market/sell", params={'market': market, 'quantity': quantity, 'rate': rate})['result']
+        return self.private_query("market/selllimit", params={'market': market, 'quantity': quantity, 'rate': rate})
 
     def get_order(self, uuid):
         return self.private_query("account/getorder", params={'uuid':uuid})['result']
@@ -103,13 +103,13 @@ class API(object):
     def cancel_all_orders(self):
         if len(self.get_open_orders()) > 0:
             carry = True
-            for item in self.get_open_orders():
-                cancel = self.cancel_order(item['OrderUuid'])
-                carry = carry and cancel['success']
-            if carry:
-                time.sleep(3)
-                return True
-            else: return self.cancel_all_orders()
+            for i in range(1,4):
+                for item in self.get_open_orders():
+                    cancel = self.cancel_order(item['OrderUuid'])
+                    time.sleep(1)
+                    carry = carry and cancel['success']
+                if carry:
+                    return True
             
 def main():
     api = API("cfa2fe7b52fc446a8c02baed2df9ae32", "80e19ec06bb54a639ff403b2a63d36f4",)
@@ -148,4 +148,8 @@ def print_json(to_print):
 if __name__ == '__main__':
     #main()
     pubk, privk = get_keys('keys2.txt')
-
+    api = API(pubk, privk)
+    print_json(api.get_open_orders())
+    cancel = api.cancel_all_orders()
+    print_json(cancel)
+    print_json(api.get_open_orders())
