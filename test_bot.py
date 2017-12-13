@@ -65,14 +65,14 @@ if __name__ == '__main__':
                 print("Confidence < -0.001")
                 if eth_wallet > 0.1:
                     print("Selling ETH for OMG, round =", j, "Buy Quantity: ", eth_wallet / current_stat['Price'])
-                    order = api.buy_limit(name, eth_wallet * 0.99 / current_stat['Price'], current_stat['Price'])
+                    order = api.buy_limit(name, eth_wallet * 0.99 / (current_stat['Price'] * 1.0005) , (current_stat['Price'] * 1.005))
                     buys += 1
                     print("Order:  ", order)
             elif confidence > 0.001:
                 print("Confidence > 0.001")
                 if omg_wallet > 0.5 :
                     print("Selling OMG for ETH, round =", j, "Sell Quantity: ", omg_wallet)
-                    order = api.sell_limit(name, omg_wallet * 0.99, current_stat['Price'])
+                    order = api.sell_limit(name, omg_wallet * 0.99, current_stat['Price'] * 0.9995)
                     buys += 1
             print("Current order UUIDs: ")
             print_json(api.get_open_orders())

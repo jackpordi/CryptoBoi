@@ -16,8 +16,8 @@ def print_json(to_print):
     print(json.dumps(to_print, sort_keys=True, indent=4, separators=(',', ': ')))
 
 if __name__ == '__main__':
-    name = 'ETH-XRP'
-    data = load_data('../Crypto_Data/' + name + '.csv')[-10000:-600]
+    name = 'ETH-OMG'
+    data = load_data('../Crypto_Data/' + name + '.csv')[-20040:-600]
     sets = [5] #, 10, 15, 20, 30, 45, 60, 90 ] #300, 720, 3600, 7200]
     fig, ax1 = plt.subplots()
     ax1.plot(data['Last'][:-5], 'b')
@@ -53,12 +53,12 @@ if __name__ == '__main__':
             if confidence < -0.001:
                 if eth_wallet != 0:
                     #print("Buying ETH, round =", j)
-                    ltc_wallet = eth_wallet * 0.9975 / current_stat['Price']
+                    ltc_wallet = eth_wallet * 0.9975 / (current_stat['Price'] * 1.0005)
                     buys += 1
                     eth_wallet = 0
             elif confidence > 0.001:
                 if ltc_wallet != 0:
-                    eth_wallet = ltc_wallet * current_stat['Price'] *0.9975
+                    eth_wallet = ltc_wallet * current_stat['Price'] * 0.9975 * 0.9995
                     #print("Selling ETH, round =", j)
                     buys += 1
                     ltc_wallet = 0
