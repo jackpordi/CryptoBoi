@@ -31,15 +31,18 @@ if __name__ == '__main__':
     price_history = []
     value_history = []
     buys = 0
-    for i in range(0,49):
+    for i in range(0,50):
         market = api.get_market(name)
-        print_json(market)
+        print("Data filling round: ", i)
+        print("Last Price: ", market[0]['Last'])
+        print()
         price_history.append(market[0]['Last'])
         time.sleep(6)
     print(price_history)
     j = 0
     while True:
         try:
+            print("Getting Balances...")
             balances = api.get_balances()
             eth_wallet = balances['ETH']['Available']
             omg_wallet = balances['OMG']['Available']
@@ -48,10 +51,11 @@ if __name__ == '__main__':
             price_history.append(market[0]['Last'])
             current_stat = {}
             current_stat['Price'] = price_history[-1]
+            print("Calculating Confidence values...")
             for i in sets:
                 istat = {}
                 data_set = Series(price_history[-i:])
-                result = sm.OLS(DataFrame(data_set), statsmodels.tools.add_constant([x for x in range(1, 50)])).fit()
+                result = sm.OLS(DataFrame(data_set), statsmodels.tools.add_constant([x for x in range(1, 51)])).fit()
                 #print(result.summary())
                 #istat['RegressionCoefficient'] = result.rsquared
                 istat['RegressionCoefficientSquared'] = result.rsquared ** 2
@@ -61,15 +65,16 @@ if __name__ == '__main__':
                 current_stat['Last' + str(i)] = istat
             to_use = 'Last50'
             confidence = current_stat[to_use]['Gradient'] * current_stat[to_use]['RegressionCoefficientSquared'] / current_stat['Price']
+            print("Making Decision")
             if not np.isinf(confidence):
-                if confidence < -0.001:
+                if confidence < -0.000001:
                     print("Confidence < -0.001")
                     if eth_wallet > 0.1:
                         print("Selling ETH for OMG, round =", j, "Buy Quantity: ", eth_wallet / current_stat['Price'])
                         order = api.buy_limit(name, eth_wallet * 0.99 / (current_stat['Price'] * 1.00005) , (current_stat['Price'] * 1.005))
                         buys += 1
                         print("Order:  ", order)
-                elif confidence > 0.001:
+                elif confidence > 0.000001:
                     print("Confidence > 0.001")
                     if omg_wallet > 0.5 :
                         print("Selling OMG for ETH, round =", j, "Sell Quantity: ", omg_wallet)
@@ -80,8 +85,8 @@ if __name__ == '__main__':
                 print("Buy/Sell Confidence: ", confidence)
                 print("   Price:            ", price_history[-1])
                 print("   At Round:         ", j)
-                print("   Mean:             ", current_stat['Last5']['Mean'])
-                print("   STD:              ", current_stat['Last5']['STD'])
+                print("   Mean:             ", current_stat[to_use]['Mean'])
+                print("   STD:              ", current_stat[to_use]['STD'])
                 print("   No of buys :      ", buys)
                 print("   Current Actual ETH Count:", eth_wallet)
                 print("   Current Actual OMG Count:", omg_wallet)
@@ -93,7 +98,8 @@ if __name__ == '__main__':
                 print("Inf encountered!")
                 value_history.append(eth_wallet if eth_wallet != 0 else omg_wallet * current_stat['Price'])
             j += 1
-        except:
+        except Exception as e:
+            print('Exception Occured: ', e)
             pass
         finally:
             time.sleep(6)
