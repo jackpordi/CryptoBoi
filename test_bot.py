@@ -67,19 +67,22 @@ if __name__ == '__main__':
             confidence = current_stat[to_use]['Gradient'] * current_stat[to_use]['RegressionCoefficientSquared'] / current_stat['Price']
             print("Making Decision")
             if not np.isinf(confidence):
-                if confidence < -0.000001:
+                if confidence < -0.0000005:
                     print("Confidence < -0.001")
                     if eth_wallet > 0.1:
                         print("Selling ETH for OMG, round =", j, "Buy Quantity: ", eth_wallet / current_stat['Price'])
-                        order = api.buy_limit(name, eth_wallet * 0.99 / (current_stat['Price'] * 1.00005) , (current_stat['Price'] * 1.005))
-                        buys += 1
+                        order = api.buy_limit(name, eth_wallet * 0.99 / (current_stat['Price'] * 0.99995) , (current_stat['Price'] * 1.005))
                         print("Order:  ", order)
-                elif confidence > 0.000001:
+                        buys += 1
+                        time.sleep(5)
+                elif confidence > 0.0000005:
                     print("Confidence > 0.001")
                     if omg_wallet > 0.5 :
                         print("Selling OMG for ETH, round =", j, "Sell Quantity: ", omg_wallet)
-                        order = api.sell_limit(name, omg_wallet * 0.99, current_stat['Price'] * 0.99995)
+                        order = api.sell_limit(name, omg_wallet * 0.99, current_stat['Price'] *1.00005)
+                        print("Order:  ", order)
                         buys += 1
+                        time.sleep(5)
                 print("Current order UUIDs: ")
                 print_json(api.get_open_orders())
                 print("Buy/Sell Confidence: ", confidence)
