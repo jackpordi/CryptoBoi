@@ -21,7 +21,7 @@ if __name__ == '__main__':
     pubk, privk = get_keys('keys2.txt') 
     api = API(pubk, privk)
     balances = api.get_balances()
-    sets = [5] 
+    sets = [50] 
     eth_wallet = balances['ETH']['Available']
     try:
         omg_wallet = balances['OMG']['Available']
@@ -31,11 +31,11 @@ if __name__ == '__main__':
     price_history = []
     value_history = []
     buys = 0
-    for i in range(0,4):
+    for i in range(0,49):
         market = api.get_market(name)
         print_json(market)
         price_history.append(market[0]['Last'])
-        time.sleep(60)
+        time.sleep(6)
     print(price_history)
     j = 0
     while True:
@@ -51,7 +51,7 @@ if __name__ == '__main__':
             for i in sets:
                 istat = {}
                 data_set = Series(price_history[-i:])
-                result = sm.OLS(DataFrame(data_set), statsmodels.tools.add_constant([x for x in range(1, 6)])).fit()
+                result = sm.OLS(DataFrame(data_set), statsmodels.tools.add_constant([x for x in range(1, 50)])).fit()
                 #print(result.summary())
                 #istat['RegressionCoefficient'] = result.rsquared
                 istat['RegressionCoefficientSquared'] = result.rsquared ** 2
@@ -59,7 +59,7 @@ if __name__ == '__main__':
                 istat['STD'] = data_set.std()
                 istat['Mean'] = data_set.mean()
                 current_stat['Last' + str(i)] = istat
-            to_use = 'Last5'
+            to_use = 'Last50'
             confidence = current_stat[to_use]['Gradient'] * current_stat[to_use]['RegressionCoefficientSquared'] / current_stat['Price']
             if not np.isinf(confidence):
                 if confidence < -0.001:
@@ -96,5 +96,5 @@ if __name__ == '__main__':
         except:
             pass
         finally:
-            time.sleep(60)
+            time.sleep(6)
     print("No of buys:", buys)
