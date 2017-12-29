@@ -57,7 +57,7 @@ if __name__ == '__main__':
         to_use = 'Last5'
         confidence = current_stat[to_use]['Gradient'] * current_stat[to_use]['RegressionCoefficientSquared'] / current_stat['Price']
         if not np.isinf(confidence):
-            if confidence > 0.007:
+            if confidence < -0.001:
                 if base_wallet != 0:
                     # Sell from ETH to Asset
                     alt_wallet = base_wallet * 0.9975 / (current_stat['Price'] * 1.00005)
@@ -65,7 +65,7 @@ if __name__ == '__main__':
                     base_wallet = 0
                     buy_price_history.append(current_stat['Price'])
                     buy_time_history.append(current_data.index.values[-1])
-            elif confidence < -0.007:
+            elif confidence > 0.001:
                 if alt_wallet != 0:
                     # Sell from Asset back to ETH
                     base_wallet = alt_wallet * current_stat['Price'] * 0.9975 * 0.99995
